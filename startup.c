@@ -21,8 +21,7 @@
 /* includes for int/exc handlers */
 #include <dev/extimux.h>
 #include <dev/usart1.h>
-#include <dev/spi1.h>
-#include <dev/sx1272.h>
+#include <dev/spi2.h>
 
 /* data pointers */
 /* bss section */
@@ -203,7 +202,7 @@ uint32_t vectors[] __attribute__ ((section(".vectors"))) = {
 	/* EXTI Line0 interrupt */
 	(uint32_t)DefaultHandler,
 	/* EXTI Line1 interrupt */
-	(uint32_t)SX1272_Dio0Exti1Isr,
+	(uint32_t)DefaultHandler,
 	/* EXTI Line2 interrupt */
 	(uint32_t)DefaultHandler,
 	/* EXTI Line3 interrupt */
@@ -213,13 +212,13 @@ uint32_t vectors[] __attribute__ ((section(".vectors"))) = {
 	/* DMA1C1 Channel1 global interrupt */
 	(uint32_t)DefaultHandler,
 	/* DMA1C2 Channel1 global interrupt */
-	(uint32_t)SPI1_DMA1Ch2Isr,
+	(uint32_t)DefaultHandler,
 	/* DMA1C3 Channel1 global interrupt */
 	(uint32_t)DefaultHandler,
 	/* DMA1C4 Channel1 global interrupt */
 	(uint32_t)DefaultHandler,
 	/* DMA1C5 Channel1 global interrupt */
-	(uint32_t)DefaultHandler,
+	(uint32_t)SPI2_DMA1Ch5Isr,
 	/* DMA1C6 Channel1 global interrupt */
 	(uint32_t)DefaultHandler,
 	/* DMA1C7 Channel1 global interrupt */

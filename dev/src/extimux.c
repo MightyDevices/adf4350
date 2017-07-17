@@ -13,37 +13,37 @@
 #include <sys/err.h>
 
 /* routines */
-#include <dev/sx1272.h>
+//#include <dev/sx1272.h>
 
 /* exti interrupt mux for lines 5 to 9 */
 void ExtiMux_Exti5_9Isr(void)
 {
-	/* get pending register */
-	uint32_t pr = EXTI->PR;
-
-	/* exti5 interrupt */
-	if (pr & EXTI_PR_PR5)
-		SX1272_Dio4Exti5Isr();
-
-	/* exti10 interrupt */
-	if (pr & EXTI_PR_PR7)
-		SX1272_Dio3Exti7Isr();
+//	/* get pending register */
+//	uint32_t pr = EXTI->PR;
+//
+//	/* exti5 interrupt */
+//	if (pr & EXTI_PR_PR5)
+//		SX1272_Dio4Exti5Isr();
+//
+//	/* exti10 interrupt */
+//	if (pr & EXTI_PR_PR7)
+//		SX1272_Dio3Exti7Isr();
 
 }
 
 /* exti interrupt mux for lines 10 to 15 */
 void ExtiMux_Exti10_15Isr(void)
 {
-	/* get pending register */
-	uint32_t pr = EXTI->PR;
-
-	/* exti10 interrupt */
-	if (pr & EXTI_PR_PR10)
-		SX1272_Dio1Exti10Isr();
-
-	/* exti10 interrupt */
-	if (pr & EXTI_PR_PR11)
-		SX1272_Dio2Exti11Isr();
+//	/* get pending register */
+//	uint32_t pr = EXTI->PR;
+//
+//	/* exti10 interrupt */
+//	if (pr & EXTI_PR_PR10)
+//		SX1272_Dio1Exti10Isr();
+//
+//	/* exti10 interrupt */
+//	if (pr & EXTI_PR_PR11)
+//		SX1272_Dio2Exti11Isr();
 }
 
 /* initialize exti mux */

@@ -2,10 +2,10 @@
 SW_VER = 1.0.0
 
 # hardware version
-HW_VER = 2.0
+HW_VER = 1.0
 
 # output name
-TARGET = lora
+TARGET = adf4350
 
 # linker script
 LD_SCRIPT = stm32l151cb.ld
@@ -23,7 +23,7 @@ SRC += ./util/src/stdio.c ./util/src/string.c
 # device drivers
 SRC += ./dev/src/watchdog.c ./dev/src/usart1.c
 SRC += ./dev/src/cpuclock.c ./dev/src/debug.c
-SRC += ./dev/src/spi1.c ./dev/src/sx1272.c
+SRC += ./dev/src/spi2.c
 SRC += ./dev/src/extimux.c
 
 # compiler flags
