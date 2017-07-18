@@ -13,7 +13,7 @@
 #include <sys/err.h>
 
 /* routines */
-//#include <dev/sx1272.h>
+#include <dev/adf4350.h>
 
 /* exti interrupt mux for lines 5 to 9 */
 void ExtiMux_Exti5_9Isr(void)
@@ -34,16 +34,16 @@ void ExtiMux_Exti5_9Isr(void)
 /* exti interrupt mux for lines 10 to 15 */
 void ExtiMux_Exti10_15Isr(void)
 {
-//	/* get pending register */
-//	uint32_t pr = EXTI->PR;
+	/* get pending register */
+	uint32_t pr = EXTI->PR;
 //
 //	/* exti10 interrupt */
 //	if (pr & EXTI_PR_PR10)
 //		SX1272_Dio1Exti10Isr();
 //
-//	/* exti10 interrupt */
-//	if (pr & EXTI_PR_PR11)
-//		SX1272_Dio2Exti11Isr();
+	/* exti10 interrupt */
+	if (pr & EXTI_PR_PR11)
+		ADF4350_Exti11Isr();
 }
 
 /* initialize exti mux */

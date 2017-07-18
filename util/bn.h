@@ -19,6 +19,11 @@
 /* returns MSb position in 32 bit words */
 #define BN(x) 					((x) >= 1 << 16 ? 16 + BN4((x) >> 16) : BN4(x))
 
-
+#define LSB0(x)					( (x) & 0x0001 ? 0 : 1)
+#define LSB1(x)					( (x) & 0x0003 ? LSB0(x) : 2  + LSB0((x) >> 2) )
+#define LSB2(x)					( (x) & 0x000f ? LSB1(x) : 4  + LSB1((x) >> 4) )
+#define LSB3(x)					( (x) & 0x00ff ? LSB2(x) : 8  + LSB2((x) >> 8) )
+#define LSB4(x)					( (x) & 0xffff ? LSB3(x) : 16 + LSB3((x) >> 16) )
+#define LSB(x)					( (x) ? LSB4(x) : -1 )
 
 #endif /* BN_H_ */

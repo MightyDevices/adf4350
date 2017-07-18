@@ -57,4 +57,19 @@ static inline __attribute__((always_inline)) uint32_t Arch_CLZ(uint32_t x)
 	return result;
 }
 
+/* reverse byte order in 32 bit word */
+static inline __attribute__((always_inline)) uint32_t Arch_REV(uint32_t x)
+{
+	/* result */
+	uint32_t result;
+	/* some assembly magic */
+	__asm__ volatile (
+		"rev		%0, %1		\n"
+		: "=r" (result)
+		: "r" (x)
+	);
+	/* report result */
+	return result;
+}
+
 #endif /* ARCH_ARCH_H_ */

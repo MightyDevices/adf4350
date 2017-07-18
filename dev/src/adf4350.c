@@ -5,113 +5,31 @@
  *      Author: Tomek
  */
 
+#include <arch/arch.h>
+#include <dev/adf4350_regs.h>
 #include <dev/spi2.h>
 #include <stm32l151/rcc.h>
 #include <stm32l151/gpio.h>
+#include <stm32l151/exti.h>
+#include <stm32l151/syscfg.h>
 #include <sys/critical.h>
 #include <sys/err.h>
 
-/* register 0 */
-#define R0_FRAC								0x00007FF8
-#define R0_INT								0x7FFF8000
+#define DEBUG
+#include <dev/debug.h>
 
-/* register 1 */
-#define R1_MOD								0x00007FF8
-#define R1_PHASE							0x07FF8000
-#define R1_PRESCALER						0x08000000
-#define R1_PRESCALER_4_5					0x00000000
-#define R1_PRESCALER_8_9					0x08000000
+/* lock detected event */
+ev_t adf4350_ev;
 
-/* register 2 */
-#define R2_CNT_RESET						0x00000008
-#define R2_CNT_RESET_DISABLED				0x00000000
-#define R2_CNT_RESET_ENABLED				0x00000008
-#define R2_CP_THREESTATE					0x00000010
-#define R2_CP_THREESTATE_DISABLED			0x00000000
-#define R2_CP_THREESTATE_ENABLED			0x00000010
-#define R2_POWERDOWN						0x00000020
-#define R2_POWERDOWN_DISABLED				0x00000000
-#define R2_POWERDOWN_ENABLED				0x00000020
-#define R2_PD_POLARITY						0x00000040
-#define R2_PD_POLARITY_NEGATIVE				0x00000000
-#define R2_PD_POLARITY_POSITIVE				0x00000040
-#define R2_LDP								0x00000080
-#define R2_LDP_10NS							0x00000000
-#define R2_LDP_6NS							0x00000080
-#define R2_LDF								0x00000100
-#define R2_LDF_FRAC							0x00000000
-#define R2_LDF_INT							0x00000100
-#define R2_CHARGEPUMP_CURRENT				0x00001E00
-#define R2_DOUBLE_BUFF						0x00002000
-#define R2_R								0x00FFC000
-#define R2_RDIV2							0x01000000
-#define R2_RDOUBLER							0x02000000
-#define R2_RDOUBLER_DISABLED				0x00000000
-#define R2_RDOUBLER_ENABLED					0x02000000
-#define R2_MUXOUT							0x1C000000
-#define R2_MUXOUT_THREESTATE_OUTPUT			0x00000000
-#define R2_MUXOUT_DVDD						0x04000000
-#define R2_MUXOUT_DGND						0x08000000
-#define R2_MUXOUT_RDIV						0x0C000000
-#define R2_MUXOUT_NDIV						0x10000000
-#define R2_MUXOUT_ANALOG_LOCK				0x14000000
-#define R2_MUXOUT_DIGITAL_LOCK				0x18000000
-#define R2_LOWNOISESPUR						0x60000000
-#define R2_LOWNOISESPUR_NOISE				0x00000000
-#define R2_LOWNOISESPUR_SPUR				0x60000000
+/* lock detect */
+void ADF4350_Exti11Isr(void)
+{
+	/* clear bit */
+	EXTI->PR = EXTI_PR_PR11;
 
-/* register 3 */
-#define R3_CLKDIV							0x00007FF8
-#define R3_CLKDIV_MODE						0x00018000
-#define R3_CLKDIV_MODE_OFF					0x00000000
-#define R3_CLKDIV_MODE_FASTLOCK				0x00008000
-#define R3_CLKDIV_MODE_RESYNC				0x00010000
-#define R3_CSR								0x00040000
-#define R3_CSR_DISABLED						0x00000000
-#define R3_CSR_ENABLED						0x00040000
-
-/* register 4 */
-#define R4_OUTPWR							0x00000018
-#define R4_OUTPWR_M4						0x00000000
-#define R4_OUTPWR_M1						0x00000008
-#define R4_OUTPWR_P2						0x00000010
-#define R4_OUTPWR_P5						0x00000018
-#define R4_RFOUT							0x00000020
-#define R4_RFOUT_DISABLED					0x00000000
-#define R4_RFOUT_ENABLED					0x00000020
-#define R4_AUXPWR							0x000000C0
-#define R4_AUXPWR_M4						0x00000000
-#define R4_AUXPWR_M1						0x00000040
-#define R4_AUXPWR_P2						0x00000080
-#define R4_AUXPWR_P5						0x000000C0
-#define R4_AUXOUT							0x00000100
-#define R4_AUXOUT_DISABLED					0x00000000
-#define R4_AUXOUT_ENABLED					0x00000100
-#define R4_AUXSEL							0x00000200
-#define R4_AUXSEL_DIVIDED					0x00000000
-#define R4_AUXSEL_FUNDAMENTAL				0x00000200
-#define R4_MTLD								0x00000400
-#define R4_MTLD_DISABLED					0x00000000
-#define R4_MTLD_ENABLED						0x00000400
-#define R4_VCOPD							0x00000800
-#define R4_VCOPD_DISABLED					0x00000000
-#define R4_VCOPD_ENABLED					0x00000800
-#define R4_BAND_CLKDIV						0x000FF000
-#define R4_RFDIV							0x00700000
-#define R4_RFDIV_1							0x00000000
-#define R4_RFDIV_2							0x00100000
-#define R4_RFDIV_4							0x00200000
-#define R4_RFDIV_8							0x00300000
-#define R4_RFDIV_16							0x00400000
-#define R4_FDBCKSEL							0x00800000
-#define R4_FDBCKSEL_DIVIDED					0x00000000
-#define R4_FDBCKSEL_FUNDAMENTAL				0x00800000
-
-/* register 5 */
-#define R5_LDPIN							0x00C00000
-#define R5_LDPIN_LOW						0x00000000
-#define R5_LDPIN_DIGITAL_LOCK				0x00400000
-#define R5_LDPIN_HIGH						0x00C00000
+	/* notify others */
+	Ev_Notify(&adf4350_ev, 0);
+}
 
 /* initialize Synthesizer */
 int ADF4350_Init(void)
@@ -122,9 +40,62 @@ int ADF4350_Init(void)
 	/* enable port b */
 	RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
 
+	/* chip enable (pb14) and latch enable (pb12) */
+	GPIOB->MODER &= ~(GPIO_MODER_MODER14 | GPIO_MODER_MODER12);
+	/* set default state */
+	GPIOB->BSRR = GPIO_BSRR_BS_14 | GPIO_BSRR_BR_12;
+	/* configure as outputs */
+	GPIOB->MODER |= GPIO_MODER_MODER12_0 | GPIO_MODER_MODER14_0;
+
+	/* rf power down (pdr, pb2) */
+	GPIOB->MODER &= ~(GPIO_MODER_MODER2);
+	/* set default state */
+	GPIOB->BSRR = GPIO_BSRR_BS_2;
+	/* configure as output */
+	GPIOB->MODER |= GPIO_MODER_MODER2_0;
+
+	/* lock detect (pb11) */
+	GPIOB->MODER &= ~(GPIO_MODER_MODER11);
+	/* enable pull down */
+	GPIOB->PUPDR |= GPIO_PUPDR_PUPDR11_1;
+
+	/* configure pb11 as exti11 */
+	SYSCFG->EXTICR3 = (SYSCFG->EXTICR3 & ~SYSCFG_EXTICR3_EXTI11) |
+			SYSCFG_EXTICR3_EXTI11_PB;
+	/* enable rising edge sensitivity */
+	EXTI->RTSR |= EXTI_RTSR_TR11;
+	/* enable interrupt generation */
+	EXTI->IMR |= EXTI_IMR_MR11;
+	/* enable event genertion */
+	EXTI->EMR |= EXTI_EMR_MR11;
 
 	/* exit critical section */
 	Critical_Exit();
 	/* report status */
 	return EOK;
+}
+
+/* write registers */
+void ADF4350_WriteRegisters(const uint32_t *regs, uint32_t num)
+{
+	/* process all words */
+	while (num--) {
+		/* clear latch enable */
+		GPIOB->BSRR = GPIO_BSRR_BR_12;
+		/* adf4350 expects whole 32 bit words to be shifted out MSB first, ST's SPI
+		 * cannot operate with 32 bit words, so we need to pack 4 bytes into
+		 * 32 bit word, MSByte first */
+		uint32_t temp = Arch_REV(*regs++);
+		/* send 32-bit word */
+		SPI2_Send(&temp, sizeof(temp), 0);
+		/* latch new data */
+		GPIOB->BSRR = GPIO_BSRR_BS_12;
+	}
+}
+
+/* return locked state */
+int ADF4350_IsLocked(void)
+{
+	/* return lock pin status */
+	return !!(GPIOB->IDR & GPIO_IDR_IDR_11);
 }

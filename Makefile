@@ -23,7 +23,7 @@ SRC += ./util/src/stdio.c ./util/src/string.c
 # device drivers
 SRC += ./dev/src/watchdog.c ./dev/src/usart1.c
 SRC += ./dev/src/cpuclock.c ./dev/src/debug.c
-SRC += ./dev/src/spi2.c
+SRC += ./dev/src/spi2.c ./dev/src/adf4350.c
 SRC += ./dev/src/extimux.c
 
 # compiler flags
